@@ -1,7 +1,81 @@
 /* Renders the page from the data files in /data.
    To add, remove or reorder sections, edit the SECTIONS list at the bottom. */
-(function () {
-  const P = window.PROFILE;
+(async function () {
+  let P;
+
+  // ---------- load content from /content/*.csv ----------
+  // Time-based files are stored oldest first, so the LAST row is the newest.
+  // They are reversed here so new rows appear at the top of the page.
+  function parseCSV(text) {
+    text = text.replace(/^\uFEFF/, '');
+    const rows = []; let row = [], cell = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(cell); cell = ''; rows.push(row); row = [];
+      } else cell += c;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    const head = (rows.shift() || []).map(x => x.trim());
+    return rows.filter(r => r.some(x => x.trim() !== ''))
+      .map(r => Object.fromEntries(head.map((k, i) => [k, (r[i] || '').trim()])));
+  }
+  async function csv(name) {
+    const r = await fetch('content/' + name + '.csv', { cache: 'no-store' });
+    if (!r.ok) throw new Error(name + '.csv not found');
+    return parseCSV(new TextDecoder('utf-8').decode(await r.arrayBuffer()));
+  }
+  const rev = a => a.slice().reverse();
+
+  async function loadContent() {
+    const names = ['profile', 'links', 'stats', 'research_areas', 'skills', 'education', 'experience', 'grants',
+      'research_roles', 'editorial', 'copyrights', 'publications', 'presentations', 'sessions', 'awards', 'events', 'guided'];
+    const d = Object.fromEntries(await Promise.all(names.map(async n => [n, await csv(n)])));
+    const kv = Object.fromEntries(d.profile.map(r => [r.field, r.value]));
+    const skillGroups = [];
+    d.skills.forEach(r => {
+      let g = skillGroups.find(x => x.group === r.group);
+      if (!g) skillGroups.push(g = { group: r.group, items: [] });
+      g.items.push(r.skill);
+    });
+    P = {
+      name: kv.name, credentials: kv.credentials, title: kv.title, affiliation: kv.affiliation,
+      location: kv.location, about: kv.about, lastUpdated: kv.last_updated,
+      links: d.links.map(r => ({ label: r.label, href: r.url, text: r.text })),
+      stats: d.stats,
+      researchAreas: d.research_areas.map(r => r.area),
+      skills: skillGroups,
+      education: rev(d.education).map(r => ({ degree: r.degree, institution: r.institution, years: r.years, note: r.note })),
+      experience: rev(d.experience).map(r => ({ role: r.role, org: r.organization, dates: r.dates, kind: r.type })),
+      grants: rev(d.grants),
+      researchRoles: rev(d.research_roles).map(r => r.text),
+      editorial: rev(d.editorial).map(r => r.text),
+      copyrights: rev(d.copyrights).map(r => r.text)
+    };
+    window.PUBLICATIONS = rev(d.publications).map(r => ({ citation: r.citation, year: r.year, doi: r.doi, group: r.type }));
+    window.PRESENTATIONS = rev(d.presentations);
+    window.SESSIONS = rev(d.sessions);
+    window.AWARDS = rev(d.awards);
+    window.EVENTS = rev(d.events);
+    window.GUIDED = rev(d.guided);
+  }
+
+  try { await loadContent(); }
+  catch (err) {
+    const local = location.protocol === 'file:';
+    document.getElementById('sections').append(h('div', { class: 'card' },
+      h('strong', { text: 'The content could not be loaded.' }),
+      h('p', { class: 'sub', text: local
+        ? 'This page reads its content from the files in the "content" folder, which browsers block when index.html is opened directly from disk. Use preview.bat (Windows) or preview.command (Mac), or upload the folder to a web host.'
+        : 'Check that the "content" folder is uploaded next to index.html. (' + err.message + ')' })));
+    return;
+  }
 
   // ---------- helpers ----------
   function h(tag, attrs, ...kids) {
@@ -38,6 +112,7 @@
       h('div', { class: 'stats' }, stats)
     );
     document.getElementById('brand').textContent = P.name;
+    document.title = P.name + ' | ' + P.title;
   }
 
   // ---------- sections ----------

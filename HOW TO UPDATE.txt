@@ -1,0 +1,36 @@
+HOW TO UPDATE THE PAGE (no programming needed)
+
+All content lives in the "content" folder as CSV files. Open them in Excel,
+Google Sheets or Numbers, edit, and save as CSV (in Excel choose "CSV UTF-8").
+Do not rename the files or change the first row (column names).
+
+ADDING A NEW ITEM
+  Add a new row at the BOTTOM of the file. It will appear FIRST on the page.
+  (Rows are stored oldest to newest; the page shows newest first.)
+  Applies to: publications, presentations, sessions, awards, events, guided,
+  grants, education, experience, research_roles, editorial, copyrights.
+
+FILES THAT KEEP THEIR ORDER (top row shows first)
+  profile, links, stats, research_areas, skills
+
+WHICH FILE IS WHICH
+  profile.csv        name, title, bio, last updated
+  links.csv          email / LinkedIn / Scopus buttons
+  stats.csv          the numbers under the header ("auto:publications" counts the journal articles)
+  publications.csv   type is "Journal articles" or "Global Burden of Disease collaborations"
+  presentations.csv  type: Oral, Poster, Paper or Presentation
+  sessions.csv       resource-person sessions
+  awards.csv, events.csv, guided.csv, grants.csv, education.csv, experience.csv,
+  research_roles.csv, editorial.csv, copyrights.csv, research_areas.csv, skills.csv
+
+TIPS
+  - Text containing commas is fine; the spreadsheet adds quotes automatically.
+  - Leave a cell empty if there is nothing to show (e.g. doi, student, year).
+  - Update "last_updated" in profile.csv after changes.
+
+VIEWING / PUBLISHING
+  The page reads the CSV files each time it loads, so it must be served by a
+  web host (any host works; upload the whole folder). Double-clicking
+  index.html will show an error because browsers block reading local files.
+  To preview on your own computer: double-click preview.bat (Windows, needs
+  Python installed) or preview.command (Mac).
