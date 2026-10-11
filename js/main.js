@@ -15,11 +15,17 @@
         for (let i = 0; i < text.length; i++) {
             const c = text[i];
             if (q) {
-                if (c === '"') { if (text[i + 1] === '"') { cell += '"';
-                        i++; } else q = false; } else cell += c;
+                if (c === '"') {
+                    if (text[i + 1] === '"') {
+                        cell += '"';
+                        i++;
+                    } else q = false;
+                } else cell += c;
             } else if (c === '"') q = true;
-            else if (c === ',') { row.push(cell);
-                cell = ''; } else if (c === '\n' || c === '\r') {
+            else if (c === ',') {
+                row.push(cell);
+                cell = '';
+            } else if (c === '\n' || c === '\r') {
                 if (c === '\r' && text[i + 1] === '\n') i++;
                 row.push(cell);
                 cell = '';
@@ -27,8 +33,10 @@
                 row = [];
             } else cell += c;
         }
-        if (cell !== '' || row.length) { row.push(cell);
-            rows.push(row); }
+        if (cell !== '' || row.length) {
+            row.push(cell);
+            rows.push(row);
+        }
         const head = (rows.shift() || []).map(x => x.trim());
         return rows.filter(r => r.some(x => x.trim() !== ''))
             .map(r => Object.fromEntries(head.map((k, i) => [k, (r[i] || '').trim()])));
@@ -42,7 +50,7 @@
 
     async function loadContent() {
         const names = ['profile', 'links', 'stats', 'research_areas', 'skills', 'education', 'experience', 'grants',
-            'research_roles', 'editorial', 'copyrights', 'publications', 'presentations', 'sessions', 'awards', 'events', 'guided'
+            'research_roles', 'editorial', 'copyrights', 'publications', 'presentations', 'sessions', 'awards', 'events', 'guided', 'teaching_summary'
         ];
         const d = Object.fromEntries(await Promise.all(names.map(async n => [n, await csv(n)])));
         const kv = Object.fromEntries(d.profile.map(r => [r.field, r.value]));
@@ -77,6 +85,7 @@
         window.AWARDS = rev(d.awards);
         window.EVENTS = rev(d.events);
         window.GUIDED = rev(d.guided);
+        window.TEACHING = d.teaching_summary;
     }
 
     try { await loadContent(); } catch (err) {
@@ -86,8 +95,7 @@
             h('p', {
                 class: 'sub',
                 text: local ?
-                    'This page reads its content from the files in the "content" folder, which browsers block when index.html is opened directly from disk. Use preview.bat (Windows) or preview.command (Mac), or upload the folder to a web host.' :
-                    'Check that the "content" folder is uploaded next to index.html. (' + err.message + ')'
+                    'This page reads its content from the files in the "content" folder, which browsers block when index.html is opened directly from disk. Use preview.bat (Windows) or preview.command (Mac), or upload the folder to a web host.' : 'Check that the "content" folder is uploaded next to index.html. (' + err.message + ')'
             })));
         return;
     }
@@ -173,10 +181,14 @@
                 p.doi ? h('div', { class: 'meta' }, h('a', { href: 'https://doi.org/' + p.doi, target: '_blank', rel: 'noopener', text: 'doi.org/' + p.doi })) : null)));
             more.style.display = f.length > shown ? '' : 'none';
         }
-        [q, yr, grp].forEach(c => c.addEventListener('input', () => { shown = PAGE;
-            draw(); }));
-        more.addEventListener('click', () => { shown += PAGE;
-            draw(); });
+        [q, yr, grp].forEach(c => c.addEventListener('input', () => {
+            shown = PAGE;
+            draw();
+        }));
+        more.addEventListener('click', () => {
+            shown += PAGE;
+            draw();
+        });
         draw();
 
         return block('publications', 'Publications and Presentations',
@@ -202,8 +214,10 @@
 
     function teaching() {
         const s = window.SESSIONS || [],
-            ev = window.EVENTS || [];
+            ev = window.EVENTS || [],
+            t = window.TEACHING || [];
         return block('teaching', 'Teaching, Training and Academic Service',
+            h('ul', { class: 'clean card' }, t.map(x => h('li', { class: 'item' }, x.text))),
             h('h3', { text: 'Workshops and conferences organized (' + ev.length + ')' }),
             ev.map(e => h('div', { class: 'card' }, h('strong', { text: e.role }), h('p', { class: 'sub', text: e.programme }))),
             h('h3', { text: 'Resource person for scientific sessions (' + s.length + ')' }),
@@ -245,10 +259,14 @@
     document.getElementById('footer').textContent = 'Last updated ' + P.lastUpdated;
 
     const btn = document.getElementById('menuBtn');
-    btn.addEventListener('click', () => { const o = nav.classList.toggle('open');
-        btn.setAttribute('aria-expanded', o); });
-    nav.addEventListener('click', () => { nav.classList.remove('open');
-        btn.setAttribute('aria-expanded', false); });
+    btn.addEventListener('click', () => {
+        const o = nav.classList.toggle('open');
+        btn.setAttribute('aria-expanded', o);
+    });
+    nav.addEventListener('click', () => {
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded', false);
+    });
 
     // highlight current section in nav
     const links = [...nav.querySelectorAll('a')];
