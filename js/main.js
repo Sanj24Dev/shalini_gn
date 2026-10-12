@@ -117,7 +117,7 @@
     function renderHero() {
         const stats = P.stats.map(s => {
             const v = s.value === 'auto:publications' ?
-                (window.PUBLICATIONS || []).filter(p => p.group === 'Journal articles').length :
+                (window.PUBLICATIONS || []).length :
                 s.value;
             return h('div', { class: 'stat' }, h('b', { text: String(v) }), h('span', { text: s.label }));
         });
