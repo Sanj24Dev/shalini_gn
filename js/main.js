@@ -50,7 +50,7 @@
 
     async function loadContent() {
         const names = ['profile', 'links', 'stats', 'research_areas', 'skills', 'education', 'experience', 'grants',
-            'research_roles', 'editorial', 'copyrights', 'publications', 'presentations', 'sessions', 'awards', 'events', 'guided', 'teaching_summary'
+            'research_roles', 'editorial', 'copyrights', 'publications', 'presentations', 'sessions', 'awards', 'events', 'guided'
         ];
         const d = Object.fromEntries(await Promise.all(names.map(async n => [n, await csv(n)])));
         const kv = Object.fromEntries(d.profile.map(r => [r.field, r.value]));
@@ -85,7 +85,6 @@
         window.AWARDS = rev(d.awards);
         window.EVENTS = rev(d.events);
         window.GUIDED = rev(d.guided);
-        window.TEACHING = d.teaching_summary;
     }
 
     try { await loadContent(); } catch (err) {
@@ -214,10 +213,8 @@
 
     function teaching() {
         const s = window.SESSIONS || [],
-            ev = window.EVENTS || [],
-            t = window.TEACHING || [];
+            ev = window.EVENTS || [];
         return block('teaching', 'Teaching, Training and Academic Service',
-            h('ul', { class: 'clean card' }, t.map(x => h('li', { class: 'item' }, x.text))),
             h('h3', { text: 'Workshops and conferences organized (' + ev.length + ')' }),
             ev.map(e => h('div', { class: 'card' }, h('strong', { text: e.role }), h('p', { class: 'sub', text: e.programme }))),
             h('h3', { text: 'Resource person for scientific sessions (' + s.length + ')' }),
