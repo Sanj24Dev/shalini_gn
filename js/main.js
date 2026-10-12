@@ -214,7 +214,7 @@
     function teaching() {
         const s = window.SESSIONS || [],
             ev = window.EVENTS || [];
-        return block('teaching', 'Teaching, Training and Academic Service',
+        return block('teaching', 'Teaching',
             h('h3', { text: 'Workshops and conferences organized (' + ev.length + ')' }),
             ev.map(e => h('div', { class: 'card' }, h('strong', { text: e.role }), h('p', { class: 'sub', text: e.programme }))),
             h('h3', { text: 'Resource person for scientific sessions (' + s.length + ')' }),
